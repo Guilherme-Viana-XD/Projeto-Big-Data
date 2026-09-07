@@ -1,0 +1,10 @@
+services:
+  flume:
+    # Usamos uma imagem padrão da comunidade muito usada para testes com Hadoop/Flume
+    image: bde2020/flume
+    container_name: agente_flume
+    volumes:
+      # AQUI ESTÁ A PONTE: Mapeia a pasta atual do Codespaces (./) para (/workspace) no container
+      - ./:/workspace
+    # O comando que "liga" o agente (a1) usando o arquivo conf
+    command: /app/bin/flume-ng agent -n a1 -c /app/conf -f /workspace/flume.conf -Dflume.root.logger=INFO,console

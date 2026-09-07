@@ -1,4 +1,5 @@
 import json
+import os
 import random
 import time
 import uuid
@@ -46,7 +47,8 @@ def gerar_evento():
 
     return dados
 
-
+## Cria a pasta dados
+os.makedirs ("dados", exist_ok=True)
 # Geração contínua
 while True:
 
