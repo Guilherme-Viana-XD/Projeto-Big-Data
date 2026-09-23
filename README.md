@@ -4,146 +4,158 @@ Gerador de eventos sintéticos para o projeto de Big Data.
 
 O gerador possui dois modos:
 
-- geração contínua de eventos para processamento em streaming;
-- geração de dados históricos para processamento em batch.
+* geração contínua de eventos para processamento em streaming;
+* geração de dados históricos para processamento em batch.
 
 ## Estrutura
 
-```text
+```
 gerador/
 └── gerador.py
 
 dados/
 ├── eventos.json
-└── historico_2026-09-21.json
+└── historico_*.json
 
 scripts/
 └── validar_eventos.py
+```
 
-Geração contínua
+## Gerador
 
-Para iniciar o gerador:
+O gerador produz eventos sintéticos e independentes.
 
-python .\gerador\gerador.py
+Os eventos não possuem sessões, funil de compra ou relação entre pedidos. Cada evento é gerado de forma aleatória e independente dos demais.
 
-Os eventos são exibidos no terminal e adicionados ao arquivo:
+Os tipos de evento utilizados são:
 
+* `page_view`
+* `product_view`
+* `add_to_cart`
+* `remove_from_cart`
+* `purchase`
+* `payment_approved`
+* `shipping`
+* `delivered`
+
+Cada produto possui uma categoria fixa:
+
+* `prod_001` - Notebook → `informatica`
+* `prod_002` - Smartphone → `telefonia`
+* `prod_003` - Fone Bluetooth → `audio`
+* `prod_004` - Teclado Mecânico → `perifericos`
+* `prod_005` - Mouse Gamer → `perifericos`
+* `prod_006` - Monitor → `informatica`
+
+## Modo contínuo
+
+Para iniciar a geração contínua de eventos:
+
+```
+python gerador/gerador.py
+```
+
+Os eventos são adicionados ao arquivo:
+
+```
 dados/eventos.json
+```
 
-O arquivo utiliza o formato JSON Lines, com um objeto JSON por linha.
+Cada evento é escrito em uma linha no formato JSON.
 
-Para interromper a geração:
+Para interromper o gerador:
 
+```
 Ctrl + C
+```
 
-O arquivo dados/eventos.json é utilizado pelo Flume como fonte dos eventos.
+O gerador não utiliza o atraso do timestamp como tempo de espera. Aproximadamente 90% dos eventos utilizam o horário atual e aproximadamente 10% recebem um atraso aleatório entre 5 e 45 segundos.
 
-Geração histórica
+Isso permite simular eventos que podem chegar fora de ordem temporal.
 
-Para gerar 10.000 eventos referentes a uma data:
+## Geração de histórico
 
-python .\gerador\gerador.py --historico 2026-09-21 --total 10000 --saida dados\historico_2026-09-21.json
+Para gerar um arquivo histórico:
 
-O modo histórico:
+```
+python gerador/gerador.py --historico 2026-09-21 --total 10000 --saida dados/historico_2026-09-21.json
+```
 
-gera exatamente a quantidade solicitada;
-utiliza timestamps em UTC;
-mantém os eventos dentro da data informada;
-termina automaticamente;
-grava em um arquivo separado;
-substitui o arquivo de saída caso ele já exista.
-Validação
+O comando gera exatamente a quantidade de eventos informada.
 
-Para validar um arquivo de eventos:
+Os timestamps pertencem ao dia informado e são armazenados em UTC.
 
-python .\scripts\validar_eventos.py .\dados\historico_2026-09-21.json
+Caso o arquivo de saída já exista, ele é substituído.
 
-O validador verifica:
+## Formato dos eventos
 
-quantidade de registros;
-linhas inválidas;
-IDs duplicados;
-campos obrigatórios;
-tipos dos campos;
-timestamps;
-categorias e produtos;
-quantidade de eventos por tipo;
-timestamps fora de ordem.
-Formato dos eventos
+Cada evento possui os seguintes campos:
+
+* `event_id`
+* `user_id`
+* `product_id`
+* `product_name`
+* `event_type`
+* `timestamp`
+* `price`
+* `quantity`
+* `category`
 
 Exemplo:
 
+```
 {
-  "event_id": "67f90465-ab29-44a5-bb58-fa3aba381503",
-  "user_id": "user_037",
+  "event_id": "abc123",
+  "user_id": "user_001",
   "product_id": "prod_001",
   "product_name": "Notebook",
-  "event_type": "page_view",
-  "timestamp": "2026-09-23T19:24:49.897Z",
+  "event_type": "product_view",
+  "timestamp": "2026-09-22T18:30:15.250Z",
   "price": 3500.0,
-  "quantity": 2,
+  "quantity": 1,
   "category": "informatica"
 }
-Campos
-event_id: identificador único do evento.
-user_id: identificador do usuário.
-product_id: identificador do produto.
-product_name: nome do produto.
-event_type: tipo do evento.
-timestamp: data e hora do evento em UTC.
-price: preço do produto.
-quantity: quantidade associada ao evento.
-category: categoria fixa do produto.
-Tipos de eventos
+```
 
-Os eventos utilizados pelo gerador são:
+O campo `timestamp` utiliza UTC com precisão de milissegundos e o formato termina com `Z`.
 
-page_view
-product_view
-add_to_cart
-remove_from_cart
-purchase
-payment_approved
-shipping
-delivered
+## Validação
 
-Os eventos são sintéticos, aleatórios e independentes. O gerador não simula uma jornada real de compra.
+Para validar um arquivo de eventos:
 
-Timestamps fora de ordem
+```
+python scripts/validar_eventos.py dados/historico_2026-09-21.json
+```
 
-No modo contínuo, aproximadamente 10% dos eventos recebem um timestamp atrasado entre 5 e 45 segundos.
+A validação verifica:
 
-Isso permite simular eventos chegando ao pipeline fora da ordem cronológica, cenário útil para testes de processamento de streaming.
+* quantidade de eventos;
+* linhas inválidas;
+* IDs duplicados;
+* campos obrigatórios;
+* tipos dos campos;
+* timestamps;
+* categorias dos produtos;
+* tipos de eventos;
+* timestamps fora de ordem.
 
-Testes realizados
-Histórico
+## Compatibilidade com Flume
 
-Arquivo:
+O arquivo:
 
-dados/historico_2026-09-21.json
-
-Resultado:
-
-10.000 registros
-0 linhas inválidas
-0 IDs duplicados
-0 campos/tipos inválidos
-0 timestamps inválidos
-0 categorias/produtos inválidos
-VALIDAÇÃO OK
-Streaming
-
-Arquivo:
-
+```
 dados/eventos.json
+```
 
-Teste realizado com 22 eventos:
+continua sendo utilizado como fonte para o processamento de eventos em streaming.
 
-22 registros
-0 linhas inválidas
-0 IDs duplicados
-0 campos/tipos inválidos
-0 timestamps inválidos
-0 categorias/produtos inválidos
-3 timestamps fora de ordem
-VALIDAÇÃO OK
+A configuração do Flume permanece compatível com o gerador.
+
+## Objetivo do MVP
+
+O gerador fornece dados para duas formas de processamento:
+
+* **Streaming:** geração contínua de eventos para processamento em tempo real;
+* **Batch:** geração de arquivos históricos para processamento em lote.
+
+Os dados são sintéticos e têm finalidade acadêmica para testes do pipeline de Big Data.
