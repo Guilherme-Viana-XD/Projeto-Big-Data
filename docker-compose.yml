@@ -1,10 +1,36 @@
 services:
+
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: hadoop_namenode
+    environment:
+      - CLUSTER_NAME=ecommerce
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - HDFS_CONF_dfs_replication=1
+    ports:
+      - "9870:9870"
+      - "9000:9000"
+    volumes:
+      - namenode_data:/hadoop/dfs/name
+
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: hadoop_datanode
+    environment:
+      - SERVICE_DEPENDENCIES=namenode:9870
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    ports:
+      - "9864:9864"
+    volumes:
+      - datanode_data:/hadoop/dfs/data
+
   flume:
-    # Usamos uma imagem padrão da comunidade muito usada para testes com Hadoop/Flume
     image: bde2020/flume
     container_name: agente_flume
     volumes:
-      # AQUI ESTÁ A PONTE: Mapeia a pasta atual do Codespaces (./) para (/workspace) no container
       - ./:/workspace
-    # O comando que "liga" o agente (a1) usando o arquivo conf
     command: /app/bin/flume-ng agent -n a1 -c /app/conf -f /workspace/flume.conf -Dflume.root.logger=INFO,console
+
+volumes:
+  namenode_data:
+  datanode_data:
