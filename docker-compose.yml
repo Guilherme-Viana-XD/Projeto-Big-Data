@@ -1,6 +1,9 @@
 services:
   flume:
-    image: bde2020/flume
+    build:
+      context: .
+      dockerfile: flume/Dockerfile
+    image: projeto-big-data-flume:local
     container_name: agente_flume
     volumes:
       - ./:/workspace
