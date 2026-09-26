@@ -13,7 +13,10 @@ services:
       - bigdata
 
   hive-metastore:
-    image: bde2020/hive:2.3.2-postgresql-metastore
+    build:
+      context: .
+      dockerfile: hive/Dockerfile
+    image: projeto-big-data-hive:local
     container_name: projeto_bigdata_hive_metastore
     depends_on:
       - metastore-db
