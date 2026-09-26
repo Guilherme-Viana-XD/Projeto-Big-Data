@@ -416,4 +416,95 @@ A row key determinística reduz duplicações na tabela de alertas para a mesma 
 
 # Integração com o processamento batch
 
-O projeto possui dois fluxos complementares
+O projeto possui dois fluxos complementares que utilizam o HDFS como camada compartilhada de armazenamento:
+
+```text
+Streaming:
+Gerador → Flume → HDFS /ecommerce/raw → Flink → HBase
+
+Batch:
+HDFS /ecommerce/historico → Spark → Hive
+```
+
+O fluxo de streaming processa continuamente os eventos enviados para `/ecommerce/raw`, enquanto o fluxo batch utiliza os dados históricos para gerar agregações analíticas.
+
+## Inicialização automática do diretório HDFS
+
+O arquivo `docker-compose.streaming.yml` possui o serviço `hdfs-init`.
+
+Esse serviço aguarda o NameNode ficar disponível e cria automaticamente o diretório:
+
+```text
+/ecommerce/raw
+```
+
+O JobManager do Flink somente é iniciado após a conclusão bem-sucedida do `hdfs-init`.
+
+Isso evita que o job entre em estado `RESTARTING` quando o diretório `/ecommerce/raw` ainda não existe no HDFS.
+
+## Validação do fluxo de streaming
+
+O fluxo foi validado de ponta a ponta:
+
+```text
+Gerador
+→ Flume
+→ HDFS
+→ Flink
+→ HBase
+```
+
+Foram verificados:
+
+- gravação dos eventos pelo Flume em `/ecommerce/raw`;
+- leitura contínua dos arquivos pelo Flink;
+- processamento utilizando `event time`;
+- watermark com tolerância de 60 segundos;
+- janela deslizante de 60 segundos com avanço de 10 segundos;
+- filtro de eventos `product_view`;
+- contagem das visualizações por categoria;
+- geração de alerta quando `visualizacoes >= 2`;
+- escrita dos alertas na tabela HBase `alertas_categoria`;
+- uso de row key determinística;
+- persistência dos dados do HBase após reinicialização do container.
+
+## Teste controlado de watermark e janelas
+
+Os arquivos utilizados no teste controlado são:
+
+```text
+flink/test-data/teste_janelas_1.json
+flink/test-data/teste_janelas_avanco.json
+```
+
+O primeiro arquivo contém eventos `product_view`, incluindo eventos fora de ordem.
+
+O segundo arquivo contém um evento com timestamp posterior utilizado para avançar a watermark e provocar o fechamento das janelas.
+
+No cenário validado foram geradas 6 linhas de alerta para a categoria `informatica`.
+
+As contagens observadas foram compatíveis com as janelas deslizantes de 60 segundos e avanço de 10 segundos.
+
+## Persistência no HBase
+
+A tabela utilizada é:
+
+```text
+alertas_categoria
+```
+
+A família de colunas utilizada é:
+
+```text
+info
+```
+
+A row key segue o formato:
+
+```text
+categoria|inicio_janela|fim_janela
+```
+
+Os dados do HBase são armazenados no volume Docker `hbase_data`.
+
+Foi realizado um restart isolado do container HBase e as linhas previamente gravadas permaneceram disponíveis, confirmando a persistência dos dados.

@@ -1,4 +1,19 @@
 services:
+  hdfs-init:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: projeto_bigdata_hdfs_init
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    depends_on:
+      - namenode
+    entrypoint: /bin/bash
+    command: >
+      -c "
+      until hdfs dfs -fs hdfs://namenode:9000 -ls / >/dev/null 2>&1; do
+        sleep 2;
+      done;
+      hdfs dfs -fs hdfs://namenode:9000 -mkdir -p /ecommerce/raw;
+      "
 
   jobmanager:
     build:
@@ -18,7 +33,8 @@ services:
     volumes:
       - ./flink:/workspace/flink
     depends_on:
-      - namenode
+      hdfs-init:
+        condition: service_completed_successfully
 
   taskmanager:
     image: projeto-big-data-flink:local
