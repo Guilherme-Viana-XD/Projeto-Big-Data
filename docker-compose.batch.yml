@@ -1,0 +1,52 @@
+services:
+
+  metastore-db:
+    image: postgres:15
+    container_name: projeto_bigdata_metastore_db
+    environment:
+      POSTGRES_DB: metastore
+      POSTGRES_USER: hive
+      POSTGRES_PASSWORD: hive
+    volumes:
+      - metastore_db_data:/var/lib/postgresql/data
+    networks:
+      - bigdata
+
+  hive-metastore:
+    image: bde2020/hive:2.3.2-postgresql-metastore
+    container_name: projeto_bigdata_hive_metastore
+    depends_on:
+      - metastore-db
+    command: /opt/hive/bin/hive --service metastore
+    environment:
+      SERVICE_NAME: metastore
+      DB_DRIVER: postgres
+      SERVICE_OPTS: >-
+        -Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver
+        -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://metastore-db:5432/metastore
+        -Djavax.jdo.option.ConnectionUserName=hive
+        -Djavax.jdo.option.ConnectionPassword=hive
+    volumes:
+      - ./hive:/opt/hive/conf
+    networks:
+      - bigdata
+
+  spark:
+    image: spark:3.5.7
+    container_name: projeto_bigdata_spark
+    depends_on:
+      - hive-metastore
+    command: tail -f /dev/null
+    volumes:
+      - ./spark:/workspace
+      - ./hive/hive-site.xml:/opt/spark/conf/hive-site.xml
+    networks:
+      - bigdata
+
+volumes:
+  metastore_db_data:
+
+networks:
+  bigdata:
+    external: true
+    name: projeto-big-data_default
