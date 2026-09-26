@@ -1,0 +1,51 @@
+services:
+
+  jobmanager:
+    build:
+      context: .
+      dockerfile: flink/Dockerfile
+    image: projeto-big-data-flink:local
+    container_name: projeto_bigdata_flink_jobmanager
+    command: jobmanager
+    ports:
+      - "8081:8081"
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        parallelism.default: 1
+        execution.checkpointing.interval: 10s
+    volumes:
+      - ./flink:/workspace/flink
+    depends_on:
+      - namenode
+
+  taskmanager:
+    image: projeto-big-data-flink:local
+    container_name: projeto_bigdata_flink_taskmanager
+    command: taskmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 2
+        parallelism.default: 1
+    volumes:
+      - ./flink:/workspace/flink
+    depends_on:
+      - jobmanager
+
+  hbase:
+    build:
+      context: .
+      dockerfile: hbase/Dockerfile
+    image: projeto-big-data-hbase:local
+    container_name: projeto_bigdata_hbase
+    hostname: hbase
+    ports:
+      - "16010:16010"
+    volumes:
+      - hbase_data:/data
+
+volumes:
+  hbase_data:
