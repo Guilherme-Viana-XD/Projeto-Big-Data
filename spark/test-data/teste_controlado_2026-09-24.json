@@ -1,0 +1,9 @@
+{"event_id":"view-001","event_type":"product_view","category":"audio","price":100.00,"quantity":1,"timestamp":"2026-09-24T10:00:00Z","product_id":"prod-001","product_name":"Fone","user_id":"user-001"}
+{"event_id":"view-002","event_type":"product_view","category":"audio","price":120.00,"quantity":1,"timestamp":"2026-09-24T11:00:00Z","product_id":"prod-002","product_name":"Headset","user_id":"user-002"}
+{"event_id":"purchase-001","event_type":"purchase","category":"audio","price":50.00,"quantity":2,"timestamp":"2026-09-24T12:00:00Z","product_id":"prod-003","product_name":"Caixa de Som","user_id":"user-003"}
+{"event_id":"purchase-001","event_type":"purchase","category":"audio","price":50.00,"quantity":2,"timestamp":"2026-09-24T12:00:00Z","product_id":"prod-003","product_name":"Caixa de Som","user_id":"user-003"}
+{"event_id":"invalid-001","event_type":"purchase","category":"informatica","price":200.00,"quantity":0,"timestamp":"2026-09-24T13:00:00Z","product_id":"prod-004","product_name":"Teclado","user_id":"user-004"}
+{"event_id":"other-date-001","event_type":"purchase","category":"telefonia","price":1000.00,"quantity":1,"timestamp":"2026-09-23T14:00:00Z","product_id":"prod-005","product_name":"Celular","user_id":"user-005"}
+{"event_id":"view-003","event_type":"product_view","category":"perifericos","price":80.00,"quantity":1,"timestamp":"2026-09-24T15:00:00Z","product_id":"prod-006","product_name":"Mouse","user_id":"user-006"}
+{"event_id":"purchase-002","event_type":"purchase","category":"telefonia","price":300.00,"quantity":2,"timestamp":"2026-09-24T16:00:00Z","product_id":"prod-007","product_name":"Telefone","user_id":"user-007"}
+{"event_id":"purchase-003","event_type":"purchase","category":"audio","price":25.50,"quantity":3,"timestamp":"2026-09-24T17:00:00Z","product_id":"prod-008","product_name":"Cabo","user_id":"user-008"}
