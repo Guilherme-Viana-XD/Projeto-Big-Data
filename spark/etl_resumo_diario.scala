@@ -1,6 +1,8 @@
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 
+spark.conf.set("spark.sql.session.timeZone", "UTC")
+
 // ============================================================
 // CONFIGURAÇÃO
 // ============================================================
